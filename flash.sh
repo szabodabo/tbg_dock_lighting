@@ -19,7 +19,7 @@ mkdir /tmp/arduino_cache
 	-tools /opt/arduino/arduino-1.8.9/hardware/tools/avr \
 	-built-in-libraries /opt/arduino/arduino-1.8.9/libraries \
 	-libraries /home/dakota/Arduino/libraries \
-	-fqbn=attiny:avr:ATtinyX4:cpu=attiny44,clock=internal1 \
+	-fqbn=attiny:avr:ATtinyX4:cpu=attiny44,clock=internal8 \
 	-ide-version=10809 \
 	-build-path $ARDUINO_BUILD \
 	-warnings=default \
@@ -34,7 +34,7 @@ mkdir /tmp/arduino_cache
 	-verbose \
 	/home/dakota/GoogleDrive/Train/dock_lighting/dock_lighting.ino
 
-$AVRDUDE -p ATtiny44 -c usbtiny -C "$ARDUINO/hardware/tools/avr/etc/avrdude.conf" \
+$AVRDUDE -V -p ATtiny44 -c usbtiny -C "$ARDUINO/hardware/tools/avr/etc/avrdude.conf" \
 	-U flash:w:$ARDUINO_BUILD/dock_lighting.ino.elf
 
 
