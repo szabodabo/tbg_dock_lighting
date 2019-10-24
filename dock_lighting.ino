@@ -52,8 +52,8 @@ void setup() {
 
 
 // For testing only
-#define BUZZ_WAIT_MINIMUM_MS 250
-#define BUZZ_WAIT_MAXIMUM_MS 1000*30  // 30s
+#define BUZZ_WAIT_MINIMUM_MS 1000*10  // 10s
+#define BUZZ_WAIT_MAXIMUM_MS 1000*60*3  // 3m
 #define BUZZ_LEN_MINIMUM_MS 100
 #define BUZZ_LEN_MAXIMUM_MS 7000
 #define LED_FULL_BRIGHTNESS 2000
