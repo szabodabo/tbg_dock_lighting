@@ -58,9 +58,9 @@ void setup() {
 #define BUZZ_LEN_MAXIMUM_MS 7000
 #define LED_FULL_BRIGHTNESS 2000
 
-#define ALL_LEDS_AFFECTED_FOR_TESTING
+//#define ALL_LEDS_AFFECTED_FOR_TESTING
 
-long randomInRange(long maximum, long minimum) {
+long randomInRange(long minimum, long maximum) {
   double randFrac = rand() / (float)RAND_MAX;
   float range = maximum - minimum;
   return (randFrac * range) + minimum;
@@ -99,8 +99,8 @@ void buzz(bool enable_effect, unsigned led_for_effect) {
 
   // Here's where we apply the buzzing effect.
   double newBrightness = randZeroToOne() * (float) LED_FULL_BRIGHTNESS;
-  for (int led = ledBeginIdx; led < ledEndIdx; led++) {
-    ledout.setPWM(led,  newBrightness);
+  for (int led = ledBeginIdx; led <= ledEndIdx; led++) {
+    ledout.setPWM(led, newBrightness);
   }
   ledout.write();
 }
@@ -127,7 +127,7 @@ void loop() {
   if (millis() >= BUZZ_START_MILLIS && BUZZ_PERIOD_MS == 0) {
     // Next buzz starts now.
     BUZZ_PERIOD_MS = computeBuzzPeriodLenMs(blinkiness);
-    LED_FOR_EFFECT = randomInRange(0, 24);
+    LED_FOR_EFFECT = randomInRange(0, 23);
   }
 
   if (BUZZ_PERIOD_MS > 0 && millis() >= BUZZ_START_MILLIS) {
