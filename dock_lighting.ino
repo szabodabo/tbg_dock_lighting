@@ -28,10 +28,11 @@ void setup() {
   ledout.begin();
   digitalWrite(LEDOUT_BLANK_OD_PIN, 0);
 
-  //randomSeed(analogRead(UNCONNECTED_ANALOG_PIN));
-}
+  randomSeed(analogRead(UNCONNECTED_ANALOG_PIN));
 
-int ticker = 0;
+  // Turn on all the outputs.
+  buzz(/*enable_effect=*/false, 0);
+}
 
 // Before setting fuses to run clock at 8MHz, the serial write was *very* slow,
 // resulting in easily visible flicker when an LED is toggled on every run of loop().
@@ -43,7 +44,7 @@ int ticker = 0;
 
 
 // Ratio of normal brightness to use as baseline brightness during buzzing
-#define BUZZING_BRIGHTNESS_RATIO 0.3
+#define BUZZING_BRIGHTNESS_RATIO 0.1
 #define BUZZ_PERIOD_RANDOMNESS_FACTOR 2.0
 
 //#define BUZZ_WAIT_MINIMUM_SEC 5
@@ -51,10 +52,13 @@ int ticker = 0;
 
 
 // For testing only
-#define BUZZ_WAIT_MINIMUM_MS 1000
-#define BUZZ_WAIT_MAXIMUM_MS 1000
+#define BUZZ_WAIT_MINIMUM_MS 250
+#define BUZZ_WAIT_MAXIMUM_MS 1000*30  // 30s
 #define BUZZ_LEN_MINIMUM_MS 100
 #define BUZZ_LEN_MAXIMUM_MS 7000
+#define LED_FULL_BRIGHTNESS 2000
+
+#define ALL_LEDS_AFFECTED_FOR_TESTING
 
 long randomInRange(long maximum, long minimum) {
   double randFrac = rand() / (float)RAND_MAX;
@@ -66,12 +70,37 @@ uint32_t computeBuzzPeriodLenMs(double blinkiness) {
   return randomInRange(BUZZ_LEN_MINIMUM_MS, BUZZ_LEN_MAXIMUM_MS);
 }
 
+double randZeroToOne() {
+  return ((float) rand()) / (float) RAND_MAX;
+}
+
 uint32_t BUZZ_PERIOD_MS = 0;
 long BUZZ_START_MILLIS = 0;
+unsigned LED_FOR_EFFECT = 0;
 
-void rewriteLEDs(bool dim) {
- for (int led = 0; led < 24; led++) {
-    ledout.setPWM(led, dim ? 100 : 4000);
+void buzz(bool enable_effect, unsigned led_for_effect) {
+  if (!enable_effect) {
+    // Disable the effect by turning on all lights.
+    for (int led = 0; led < LEDOUT_BITS; led++) {
+      ledout.setPWM(led, LED_FULL_BRIGHTNESS);
+    }
+    ledout.write();
+    return;
+  }
+  #ifdef ALL_LEDS_AFFECTED_FOR_TESTING
+  int ledBeginIdx = 0;
+  int ledEndIdx = LEDOUT_BITS;
+  #else
+  // FIXME WHEN ALL SOLDERED
+  int ledBeginIdx = led_for_effect;
+  //int ledBeginIdx = randomInRange(8, 15);
+  int ledEndIdx = ledBeginIdx;
+  #endif
+
+  // Here's where we apply the buzzing effect.
+  double newBrightness = randZeroToOne() * (float) LED_FULL_BRIGHTNESS;
+  for (int led = ledBeginIdx; led < ledEndIdx; led++) {
+    ledout.setPWM(led,  newBrightness);
   }
   ledout.write();
 }
@@ -89,7 +118,7 @@ void loop() {
   if (BUZZ_PERIOD_MS > 0 && millis() - BUZZ_START_MILLIS > BUZZ_PERIOD_MS) {
     // Buzz has just ended
     BUZZ_PERIOD_MS = 0;
-    rewriteLEDs(/*dim=*/false);
+    buzz(/*enable_effect=*/false, 0);
 
     // Decide when next buzz should start.
     BUZZ_START_MILLIS = millis() + GetMSBeforeNextBuzz();
@@ -98,6 +127,11 @@ void loop() {
   if (millis() >= BUZZ_START_MILLIS && BUZZ_PERIOD_MS == 0) {
     // Next buzz starts now.
     BUZZ_PERIOD_MS = computeBuzzPeriodLenMs(blinkiness);
-    rewriteLEDs(/*dim=*/true);
+    LED_FOR_EFFECT = randomInRange(0, 24);
+  }
+
+  if (BUZZ_PERIOD_MS > 0 && millis() >= BUZZ_START_MILLIS) {
+    // Buzz is happening now.
+    buzz(/*enable_effect=*/true, LED_FOR_EFFECT);
   }
 }
